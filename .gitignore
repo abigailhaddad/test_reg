@@ -1,0 +1,31 @@
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Cache and temporary files
+scraped_data/
+*.cache
+
+# Large data files (use Git LFS or separate storage)
+ny_regulations_complete.json
+ny_regulations_from_cache.json
+individual_regulations/
+scrape_summary.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Environment variables
+.env
