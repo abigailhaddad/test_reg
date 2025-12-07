@@ -341,6 +341,7 @@
                     <th>Overall Complexity</th>
                     <th>Has Issues</th>
                     <th>Tech Review</th>
+                    <th>Reporting</th>
                     <th>Summary</th>
                     <th>Details</th>
                 </tr>
@@ -354,6 +355,7 @@
                     <th>Overall Complexity</th>
                     <th>Has Issues</th>
                     <th>Tech Review</th>
+                    <th>Reporting</th>
                     <th>Summary</th>
                     <th>Details</th>
                 </tr>
@@ -536,6 +538,7 @@
                     overallComplexity: row.overall_complexity || 'N/A',
                     hasIssues: row.has_implementation_issues || false,
                     techReview: row.requires_technical_review || false,
+                    hasReporting: row.has_reporting_requirement || false,
                     summary: row.summary || '',
                     index: index
                 };
@@ -639,6 +642,14 @@
                         }
                     },
                     {
+                        data: 'hasReporting',
+                        title: 'Reporting',
+                        width: '80px',
+                        render: function(data) {
+                            return formatBoolean(data);
+                        }
+                    },
+                    {
                         data: 'summary',
                         title: 'Summary',
                         width: '250px',
@@ -715,14 +726,14 @@
                                     const val = $(this).val();
                                     column.search(val, false, false).draw();
                                 });
-                        } else if (index === 7 || index === 8) { // Has Issues or Tech Review - boolean
+                        } else if (index === 7 || index === 8 || index === 9) { // Has Issues, Tech Review, or Reporting - boolean
                             const select = $('<select><option value="">All</option><option value="true">Yes</option><option value="false">No</option></select>')
                                 .appendTo(header.empty())
                                 .on('change', function() {
                                     const val = $(this).val();
                                     column.search(val, false, false).draw();
                                 });
-                        } else if (index !== 2 && index !== 9 && index !== 10) { // Text search (not URL, Summary, or Details)
+                        } else if (index !== 2 && index !== 10 && index !== 11) { // Text search (not URL, Summary, or Details)
                             $('<input type="text" placeholder="Search..." />')
                                 .appendTo(header.empty())
                                 .on('keyup change', function() {

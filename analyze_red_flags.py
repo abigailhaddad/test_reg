@@ -65,6 +65,7 @@ class RegulationAnalysis(BaseModel):
     overall_complexity: Optional[str] = None  # HIGH, MEDIUM, LOW, or None
     summary: Optional[str] = None  # 2-3 sentence summary of main concerns
     requires_technical_review: bool = False  # True if needs architect/engineer review
+    has_reporting_requirement: bool = False  # True if regulation creates reporting requirements
 
 class RegulationData(BaseModel):
     """Model for the input regulation data"""
@@ -159,6 +160,30 @@ ANALYSIS FRAMEWORK - 12 CATEGORIES:
 
 ---
 
+REPORTING REQUIREMENTS DETECTION:
+
+Check if the regulation creates any reporting requirements (binary flag):
+- "shall report...", "must submit reports...", "shall file...", "shall provide reports..."
+- "shall submit annual/quarterly/monthly reports to..."
+- "shall notify...", "shall inform...", "shall document and report..."
+- "shall issue reports...", "shall maintain records and report..."
+
+EXAMPLES THAT TRIGGER REPORTING FLAG:
+- "shall submit quarterly reports to the Commissioner detailing..."
+- "must file annual compliance reports with the Department"
+- "shall report all incidents within 24 hours"
+- "shall notify stakeholders of policy changes"
+- "shall maintain documentation and provide annual reports"
+
+EXAMPLES THAT DON'T:
+- "shall follow procedures" (procedural requirement, not reporting)
+- "shall maintain records" (recordkeeping only, not reporting)
+- "shall consider factors" (analytical requirement, not reporting)
+
+has_reporting_requirement: true if section creates any requirement to submit, file, report, or notify; false otherwise.
+
+---
+
 IMPORTANT: Only flag issues that are CLEAR and SUBSTANTIVE matches to the patterns described above.
 - Do not flag minor or tangential instances
 - Require strong evidence in the matched_phrases
@@ -179,6 +204,7 @@ Overall assessment:
 - overall_complexity: [HIGH | MEDIUM | LOW based on highest individual complexity, null if no issues]
 - summary: [2-3 sentences about main implementation concerns or opportunities]
 - requires_technical_review: true if section needs architects/engineers to design implementation approach
+- has_reporting_requirement: true if section creates reporting/filing/notification requirements, false otherwise
 
 Return VALID JSON with red_flags as an array of objects (each with a category field), plus the overall assessment fields.
 
@@ -198,7 +224,8 @@ Example output:
   ],
   "overall_complexity": "HIGH",
   "summary": "Has cross-reference and legalese issues.",
-  "requires_technical_review": true
+  "requires_technical_review": true,
+  "has_reporting_requirement": true
 }"""
 
     return prompt
@@ -228,10 +255,11 @@ async def analyze_regulation(regulation_data: RegulationData, client: AsyncOpenA
         # Return a default analysis in case of error
         return RegulationAnalysis(
             has_implementation_issues=False,
-            red_flags={},
+            red_flags=[],
             overall_complexity=None,
             summary=None,
-            requires_technical_review=False
+            requires_technical_review=False,
+            has_reporting_requirement=False
         )
 
 def load_regulation_files(directory: str, limit: int = 100) -> List[RegulationData]:
@@ -291,6 +319,7 @@ async def analyze_regulations_batch(regulations: List[RegulationData], client: A
                 'overall_complexity': analysis.overall_complexity,
                 'summary': analysis.summary,
                 'requires_technical_review': analysis.requires_technical_review,
+                'has_reporting_requirement': analysis.has_reporting_requirement,
                 'max_severity': max([flag.severity for flag in analysis.red_flags], default=0),
                 'num_flags': len(analysis.red_flags)
             }
