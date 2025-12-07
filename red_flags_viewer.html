@@ -489,6 +489,9 @@
             document.getElementById('flagsModal').style.display = 'block';
         }
 
+        // Category filter state
+        let selectedCategory = '';
+
         // Initialize DataTable with data
         function initializeTable(data) {
             rawData = data;
@@ -518,7 +521,8 @@
                 // Extract categories from red_flags
                 const redFlags = parseRedFlags(row.red_flags);
                 const categories = redFlags.length > 0
-                    ? [...new Set(redFlags.map(flag => flag.category))]
+                    ? [...new Set(redFlags.map(flag => (flag.category || '').trim().toLowerCase()))]
+                      .filter(cat => cat.length > 0) // Remove empty strings
                     : [];
 
                 return {
@@ -540,7 +544,27 @@
             // Destroy existing table if it exists
             if (dataTable) {
                 dataTable.destroy();
+                // Remove any existing custom search filters
+                $.fn.dataTable.ext.search.pop();
             }
+
+            // Add custom search filter for categories
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                if (!selectedCategory || selectedCategory === '') {
+                    return true;
+                }
+
+                const row = tableData[dataIndex];
+                if (!row || !row.categories) {
+                    return false;
+                }
+
+                const hasCategory = row.categories.some(cat =>
+                    cat.toLowerCase() === selectedCategory.toLowerCase()
+                );
+                console.log(`Row ${dataIndex} (${row.title.substring(0, 30)}): categories=[${row.categories.join(', ')}], selected=${selectedCategory}, matches=${hasCategory}`);
+                return hasCategory;
+            });
 
             // Show table
             document.getElementById('red-flags-table').style.display = 'table';
@@ -577,7 +601,7 @@
                                 return '<span style="color: #999;">None</span>';
                             }
                             return `<div class="categories-cell">${data.map(cat =>
-                                `<span class="category-tag">${cat.replace(/_/g, ' ').toLowerCase()}</span>`
+                                `<span class="category-tag">${cat.replace(/_/g, ' ')}</span>`
                             ).join('')}</div>`;
                         }
                     },
@@ -639,7 +663,7 @@
                 pageLength: 25,
                 order: [[5, 'desc']], // Sort by max severity descending
                 initComplete: function() {
-                    // All 12 red flag categories from the Pahlka framework
+                    // All 12 red flag categories from the Pahlka framework (lowercase)
                     const allCategories = [
                         'complexity_policy_debt',
                         'options_become_requirements',
@@ -665,16 +689,13 @@
                                 .appendTo(header.empty())
                                 .on('change', function() {
                                     const val = $(this).val();
-                                    if (val) {
-                                        // Create a regex to match the category (word boundary to avoid partial matches)
-                                        column.search(val, true, false).draw();
-                                    } else {
-                                        column.search('').draw();
-                                    }
+                                    selectedCategory = val.toLowerCase();
+                                    console.log('Selected category filter:', selectedCategory);
+                                    dataTable.draw();
                                 });
 
                             allCategories.forEach(cat => {
-                                select.append(`<option value="${cat}">${cat.replace(/_/g, ' ').toLowerCase()}</option>`);
+                                select.append(`<option value="${cat}">${cat.replace(/_/g, ' ')}</option>`);
                             });
                         } else if (index === 5) { // Max Severity - dropdown
                             const select = $('<select><option value="">All</option></select>')
