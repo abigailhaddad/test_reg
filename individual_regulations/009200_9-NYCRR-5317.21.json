@@ -1,0 +1,7 @@
+{
+  "url": "https://www.law.cornell.edu/regulations/new-york/9-NYCRR-5317.21",
+  "title": "N.Y. Comp. Codes R. & Regs. Tit. 9 § 5317.21 - Surveillance/security functionality",
+  "content": "N.Y. Comp. Codes R. & Regs. Tit. 9 § 5317.21 - Surveillance/security functionality\n\nState Regulations\nA MCS shall provide an interrogation program that enables\nonline comprehensive searching of the significant event log for the current day\nand for the previous 14 days through archived data or restoration from backup\nwhere maintaining such data on a live database is deemed inappropriate. The\ninterrogation program shall have the ability to perform a search based at least\non the following: (a) date and time\nrange; (b) unique interface\nelement/gaming device identification number; or\n(c) significant event\nnumber/identifier. Notes\nN.Y. Comp. Codes R. & Regs. Tit. 9\n§\n5317.21\n\nAdopted\n\nNew\n\nYork State Register November 16, 2016/Volume XXXVIII, Issue 46, eff. 11/16/2016\n\nState regulations are updated quarterly; we currently have two versions available. Below is a\ncomparison between our most recent version and the prior quarterly release. More comparison features will be added as we have more versions to compare. No prior version found.",
+  "url_type": "regulation",
+  "source_index": 9200
+}

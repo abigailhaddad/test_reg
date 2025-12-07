@@ -1,0 +1,7 @@
+{
+  "url": "https://www.law.cornell.edu/regulations/new-york/9-NYCRR-5319.43",
+  "title": "N.Y. Comp. Codes R. & Regs. Tit. 9 § 5319.43 - Scaling algorithms",
+  "content": "N.Y. Comp. Codes R. & Regs. Tit. 9 § 5319.43 - Scaling algorithms\n\nState Regulations\n(a) If a\nrandom number with a range shorter than that provided by the RNG is required\nfor some purpose within the gaming device, the method of re-scaling (i.e., converting the number to the lower range) is to be designed in such a way that\nall numbers within the lower range are equally probable. (b) If a particular random number selected is\noutside the range of equal distribution of re-scaling values, it is permissible\nto discard such random number and select the next in sequence for the purpose\nof re-scaling. Notes\nN.Y. Comp. Codes R. & Regs. Tit. 9\n§\n5319.43\n\nAdopted\n\nNew\n\nYork State Register November 16, 2016/Volume XXXVIII, Issue 46, eff. 11/16/2016\n\nState regulations are updated quarterly; we currently have two versions available. Below is a\ncomparison between our most recent version and the prior quarterly release. More comparison features will be added as we have more versions to compare. No prior version found.",
+  "url_type": "regulation",
+  "source_index": 25584
+}

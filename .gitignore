@@ -11,7 +11,6 @@ scraped_data/
 # Large data files (use Git LFS or separate storage)
 ny_regulations_complete.json
 ny_regulations_from_cache.json
-individual_regulations/
 scrape_summary.json
 
 # OS files

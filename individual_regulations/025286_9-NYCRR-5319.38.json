@@ -1,0 +1,7 @@
+{
+  "url": "https://www.law.cornell.edu/regulations/new-york/9-NYCRR-5319.38",
+  "title": "N.Y. Comp. Codes R. & Regs. Tit. 9 § 5319.38 - RNG seeding",
+  "content": "N.Y. Comp. Codes R. & Regs. Tit. 9 § 5319.38 - RNG seeding\n\nState Regulations\n\nThe first seed shall be determined randomly by an\nuncontrolled event. After every game there shall be a random change in the RNG\nprocess (new seed, random timer, delay, etc.) in order to ensure that the RNG\ndoes not start at the same value every time. It is permissible not to use a\nrandom seed. Nevertheless, a manufacturer shall ensure that multiple games will\nnot synchronize. Notes\nN.Y. Comp. Codes R. & Regs. Tit. 9\n§\n5319.38\n\nAdopted\n\nNew\n\nYork State Register November 16, 2016/Volume XXXVIII, Issue 46, eff. 11/16/2016\n\nState regulations are updated quarterly; we currently have two versions available. Below is a\ncomparison between our most recent version and the prior quarterly release. More comparison features will be added as we have more versions to compare. No prior version found.",
+  "url_type": "regulation",
+  "source_index": 25286
+}
