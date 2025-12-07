@@ -120,6 +120,7 @@
             padding: 15px;
             background: #e9ecef;
             border-radius: 4px;
+            flex-wrap: wrap;
         }
 
         .stat-item {
@@ -135,6 +136,164 @@
         .stat-label {
             font-size: 12px;
             color: #666;
+        }
+
+        /* Modal styles for detailed red flags */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #000;
+        }
+
+        .flag-category {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .flag-category-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .flag-detail-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .flag-detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .flag-detail-value {
+            color: #333;
+        }
+
+        .matched-phrases-list {
+            margin-top: 5px;
+            margin-left: 15px;
+        }
+
+        .phrase-item {
+            padding: 5px;
+            margin: 3px 0;
+            background: #fff;
+            border-left: 3px solid #17a2b8;
+            font-style: italic;
+            font-size: 12px;
+            color: #555;
+        }
+
+        /* Expand button */
+        .expand-btn {
+            padding: 4px 8px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .expand-btn:hover {
+            background: #0056b3;
+        }
+
+        /* Complexity badge */
+        .complexity-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .complexity-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .complexity-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .complexity-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* Boolean badges */
+        .bool-true {
+            background: #d4edda;
+            color: #155724;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        .bool-false {
+            background: #e2e3e5;
+            color: #383d41;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        /* Category tags */
+        .category-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            margin: 2px 2px;
+            background: #e7f3ff;
+            color: #0056b3;
+            border-radius: 3px;
+            font-size: 11px;
+            border: 1px solid #b3d9ff;
+        }
+
+        .categories-cell {
+            max-width: 300px;
+            overflow-y: auto;
+            max-height: 80px;
         }
     </style>
 </head>
@@ -154,7 +313,7 @@
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="flagged-count">0</div>
-                <div class="stat-label">With Red Flags</div>
+                <div class="stat-label">With Implementation Issues</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="high-severity-count">0</div>
@@ -164,29 +323,52 @@
                 <div class="stat-value" id="medium-severity-count">0</div>
                 <div class="stat-label">Medium Severity (7-8)</div>
             </div>
+            <div class="stat-item">
+                <div class="stat-value" id="tech-review-count">0</div>
+                <div class="stat-label">Needs Tech Review</div>
+            </div>
         </div>
 
         <table id="red-flags-table" class="display" style="width:100%; display: none;">
             <thead>
                 <tr class="filters">
-                    <th>Source Index</th>
+                    <th>Source</th>
                     <th>Title</th>
                     <th>URL</th>
-                    <th>Content</th>
-                    <th>Red Flags</th>
-                    <th>Severity</th>
+                    <th># Flags</th>
+                    <th>Categories</th>
+                    <th>Max Severity</th>
+                    <th>Overall Complexity</th>
+                    <th>Has Issues</th>
+                    <th>Tech Review</th>
+                    <th>Summary</th>
+                    <th>Details</th>
                 </tr>
                 <tr>
-                    <th>Source Index</th>
+                    <th>Source</th>
                     <th>Title</th>
                     <th>URL</th>
-                    <th>Content</th>
-                    <th>Red Flags</th>
-                    <th>Severity</th>
+                    <th># Flags</th>
+                    <th>Categories</th>
+                    <th>Max Severity</th>
+                    <th>Overall Complexity</th>
+                    <th>Has Issues</th>
+                    <th>Tech Review</th>
+                    <th>Summary</th>
+                    <th>Details</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
+
+        <!-- Modal for detailed red flags -->
+        <div id="flagsModal" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h2 id="modalTitle" style="margin-top: 0;"></h2>
+                <div id="modalBody"></div>
+            </div>
+        </div>
     </div>
 
     <!-- jQuery -->
@@ -198,64 +380,161 @@
 
     <script>
         let dataTable = null;
+        let rawData = [];
 
-        // Parse red flags from string representation
+        // Parse red flags from JSON string
         function parseRedFlags(flagsStr) {
             if (!flagsStr || flagsStr === '[]') return [];
             try {
-                // Handle Python list format
-                const cleaned = flagsStr.replace(/'/g, '"');
-                return JSON.parse(cleaned);
+                return JSON.parse(flagsStr);
             } catch (e) {
+                console.error('Failed to parse red flags:', e);
                 return [];
             }
         }
 
-        // Format red flags as badges
-        function formatRedFlags(flags) {
-            if (!flags || flags.length === 0) return '<span style="color:#999">None</span>';
-            return flags.map(flag =>
-                `<span class="red-flag-badge">${flag.replace(/_/g, ' ')}</span>`
-            ).join(' ');
+        // Get complexity class
+        function getComplexityClass(complexity) {
+            if (complexity === 'HIGH') return 'complexity-high';
+            if (complexity === 'MEDIUM') return 'complexity-medium';
+            return 'complexity-low';
         }
 
         // Get severity class
         function getSeverityClass(score) {
-            if (score >= 9) return 'severity-high';
-            if (score >= 7) return 'severity-medium';
+            const s = parseInt(score);
+            if (s >= 9) return 'severity-high';
+            if (s >= 7) return 'severity-medium';
             return 'severity-low';
+        }
+
+        // Format boolean as badge
+        function formatBoolean(value) {
+            const val = value === 'true' || value === true;
+            return `<span class="bool-${val ? 'true' : 'false'}">${val ? 'Yes' : 'No'}</span>`;
+        }
+
+        // Open modal with detailed red flags
+        function showRedFlagsModal(rowIndex) {
+            const row = rawData[rowIndex];
+            const redFlags = parseRedFlags(row.red_flags);
+
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = `Red Flags for: ${row.title}`;
+
+            let html = '';
+
+            // Add overall summary
+            if (row.summary) {
+                html += `<div style="background: #e7f3ff; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <strong>Summary:</strong> ${row.summary}
+                </div>`;
+            }
+
+            // Add each red flag
+            if (redFlags && redFlags.length > 0) {
+                redFlags.forEach(flag => {
+                    html += `<div class="flag-category">
+                        <div class="flag-category-name">${flag.category.replace(/_/g, ' ').toUpperCase()}</div>
+                        <div class="flag-detail-row">
+                            <div class="flag-detail-label">Severity:</div>
+                            <div class="flag-detail-value">
+                                <span class="${getSeverityClass(flag.severity)}" style="padding: 2px 6px; border-radius: 3px;">${flag.severity}/10</span>
+                            </div>
+                        </div>
+                        <div class="flag-detail-row">
+                            <div class="flag-detail-label">Complexity:</div>
+                            <div class="flag-detail-value">
+                                <span class="complexity-badge ${getComplexityClass(flag.complexity)}">${flag.complexity}</span>
+                            </div>
+                        </div>
+                        <div class="flag-detail-row">
+                            <div class="flag-detail-label">Explanation:</div>
+                            <div class="flag-detail-value">${flag.explanation || 'N/A'}</div>
+                        </div>
+                        <div class="flag-detail-row">
+                            <div class="flag-detail-label">Implementation:</div>
+                            <div class="flag-detail-value">${flag.implementation_approach || 'N/A'}</div>
+                        </div>`;
+
+                    if (flag.effort_estimate) {
+                        html += `<div class="flag-detail-row">
+                            <div class="flag-detail-label">Effort:</div>
+                            <div class="flag-detail-value">${flag.effort_estimate}</div>
+                        </div>`;
+                    }
+
+                    if (flag.matched_phrases && flag.matched_phrases.length > 0) {
+                        html += `<div class="flag-detail-row">
+                            <div class="flag-detail-label">Matched Phrases:</div>
+                            <div class="flag-detail-value">
+                                <div class="matched-phrases-list">
+                                    ${flag.matched_phrases.map(phrase =>
+                                        `<div class="phrase-item">${phrase}</div>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        </div>`;
+                    }
+
+                    html += '</div>';
+                });
+            } else {
+                html = '<p style="color: #999;">No implementation issues found.</p>';
+            }
+
+            modalBody.innerHTML = html;
+            document.getElementById('flagsModal').style.display = 'block';
         }
 
         // Initialize DataTable with data
         function initializeTable(data) {
+            rawData = data;
+
             // Update stats
             const total = data.length;
-            const flagged = data.filter(r => parseRedFlags(r.red_flags).length > 0).length;
-            const highSeverity = data.filter(r => parseInt(r.severity_score) >= 9).length;
+            const flagged = data.filter(r => r.has_implementation_issues === 'true' || r.has_implementation_issues === true).length;
+            const highSeverity = data.filter(r => parseInt(r.max_severity) >= 9).length;
             const mediumSeverity = data.filter(r => {
-                const score = parseInt(r.severity_score);
+                const score = parseInt(r.max_severity);
                 return score >= 7 && score < 9;
             }).length;
+            const techReview = data.filter(r => r.requires_technical_review === 'true' || r.requires_technical_review === true).length;
 
             document.getElementById('total-count').textContent = total;
             document.getElementById('flagged-count').textContent = flagged;
             document.getElementById('high-severity-count').textContent = highSeverity;
             document.getElementById('medium-severity-count').textContent = mediumSeverity;
+            document.getElementById('tech-review-count').textContent = techReview;
             document.getElementById('stats-bar').style.display = 'flex';
 
             // Prepare table data
-            const tableData = data.map(row => {
-                const flags = parseRedFlags(row.red_flags);
-                const severity = parseInt(row.severity_score) || 0;
+            const tableData = data.map((row, index) => {
+                const numFlags = parseInt(row.num_flags) || 0;
+                const maxSeverity = parseInt(row.max_severity) || 0;
 
-                return [
-                    row.source_index,
-                    row.title || '',
-                    row.url || '',
-                    row.content || '',
-                    flags,
-                    severity
-                ];
+                // Extract categories from red_flags
+                const redFlags = parseRedFlags(row.red_flags);
+                const categories = redFlags.length > 0
+                    ? [...new Set(redFlags.map(flag => flag.category))]
+                    : [];
+
+                return {
+                    source: row.source_index,
+                    title: row.title || '',
+                    url: row.url || '',
+                    numFlags: numFlags,
+                    categories: categories,
+                    categoriesStr: categories.join(','), // For filtering
+                    maxSeverity: maxSeverity,
+                    overallComplexity: row.overall_complexity || 'N/A',
+                    hasIssues: row.has_implementation_issues || false,
+                    techReview: row.requires_technical_review || false,
+                    summary: row.summary || '',
+                    index: index
+                };
             });
 
             // Destroy existing table if it exists
@@ -270,84 +549,152 @@
             dataTable = $('#red-flags-table').DataTable({
                 data: tableData,
                 columns: [
-                    { title: 'Source Index', width: '80px' },
-                    { title: 'Title', width: '200px' },
+                    { data: 'source', title: 'Source', width: '70px' },
+                    { data: 'title', title: 'Title', width: '180px' },
                     {
+                        data: 'url',
                         title: 'URL',
-                        width: '100px',
+                        width: '80px',
                         render: function(data) {
                             if (!data) return '';
                             return `<a href="${data}" target="_blank" class="url-link">View</a>`;
                         }
                     },
                     {
-                        title: 'Content',
-                        width: '300px',
+                        data: 'numFlags',
+                        title: '# Flags',
+                        width: '60px',
                         render: function(data) {
-                            if (!data) return '';
-                            const preview = data.substring(0, 200) + (data.length > 200 ? '...' : '');
-                            return `<div class="content-preview" title="${data.replace(/"/g, '&quot;')}">${preview}</div>`;
+                            return `<span style="font-weight: bold; color: #333;">${data}</span>`;
                         }
                     },
                     {
-                        title: 'Red Flags',
-                        width: '200px',
+                        data: 'categories',
+                        title: 'Categories',
+                        width: '220px',
                         render: function(data) {
-                            return formatRedFlags(data);
-                        }
-                    },
-                    {
-                        title: 'Severity',
-                        width: '80px',
-                        render: function(data, type, row) {
-                            if (type === 'display') {
-                                return `<span class="${getSeverityClass(data)}" style="padding: 4px 8px; border-radius: 4px;">${data}</span>`;
+                            if (!data || data.length === 0) {
+                                return '<span style="color: #999;">None</span>';
                             }
-                            return data;
+                            return `<div class="categories-cell">${data.map(cat =>
+                                `<span class="category-tag">${cat.replace(/_/g, ' ').toLowerCase()}</span>`
+                            ).join('')}</div>`;
+                        }
+                    },
+                    {
+                        data: 'maxSeverity',
+                        title: 'Max Severity',
+                        width: '90px',
+                        render: function(data) {
+                            return `<span class="${getSeverityClass(data)}" style="padding: 4px 8px; border-radius: 4px;">${data}/10</span>`;
+                        }
+                    },
+                    {
+                        data: 'overallComplexity',
+                        title: 'Overall Complexity',
+                        width: '100px',
+                        render: function(data) {
+                            if (data === 'N/A') return '<span style="color: #999;">None</span>';
+                            return `<span class="complexity-badge ${getComplexityClass(data)}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'hasIssues',
+                        title: 'Has Issues',
+                        width: '80px',
+                        render: function(data) {
+                            return formatBoolean(data);
+                        }
+                    },
+                    {
+                        data: 'techReview',
+                        title: 'Tech Review',
+                        width: '90px',
+                        render: function(data) {
+                            return formatBoolean(data);
+                        }
+                    },
+                    {
+                        data: 'summary',
+                        title: 'Summary',
+                        width: '250px',
+                        render: function(data) {
+                            if (!data) return '<span style="color: #999;">—</span>';
+                            const preview = data.substring(0, 100) + (data.length > 100 ? '...' : '');
+                            return `<span title="${data.replace(/"/g, '&quot;')}">${preview}</span>`;
+                        }
+                    },
+                    {
+                        data: 'index',
+                        title: 'Details',
+                        width: '70px',
+                        render: function(data) {
+                            return `<button class="expand-btn" onclick="showRedFlagsModal(${data})">View</button>`;
                         }
                     }
                 ],
                 orderCellsTop: true,
                 fixedHeader: true,
+                scrollX: true,
                 pageLength: 25,
-                order: [[5, 'desc']], // Sort by severity descending
+                order: [[5, 'desc']], // Sort by max severity descending
                 initComplete: function() {
+                    // Collect all unique categories from table data
+                    const allCategories = new Set();
+                    tableData.forEach(row => {
+                        if (row.categories && row.categories.length > 0) {
+                            row.categories.forEach(cat => allCategories.add(cat));
+                        }
+                    });
+                    const sortedCategories = Array.from(allCategories).sort();
+
                     // Add column filters
                     this.api().columns().every(function(index) {
                         const column = this;
                         const header = $(column.header()).closest('thead').find('tr.filters th').eq(index);
 
-                        // Different filter types for different columns
-                        if (index === 5) { // Severity - dropdown
+                        if (index === 4) { // Categories - dropdown
+                            const select = $('<select><option value="">All</option></select>')
+                                .appendTo(header.empty())
+                                .on('change', function() {
+                                    const val = $(this).val();
+                                    if (val) {
+                                        // Search for the category in the concatenated categories string
+                                        column.search(val, false, false).draw();
+                                    } else {
+                                        column.search('').draw();
+                                    }
+                                });
+
+                            sortedCategories.forEach(cat => {
+                                select.append(`<option value="${cat}">${cat.replace(/_/g, ' ').toLowerCase()}</option>`);
+                            });
+                        } else if (index === 5) { // Max Severity - dropdown
                             const select = $('<select><option value="">All</option></select>')
                                 .appendTo(header.empty())
                                 .on('change', function() {
                                     const val = $.fn.dataTable.util.escapeRegex($(this).val());
-                                    column.search(val ? '^' + val + '$' : '', true, false).draw();
+                                    column.search(val ? '^' + val : '', true, false).draw();
                                 });
 
-                            // Add severity options
-                            for (let i = 0; i <= 10; i++) {
-                                select.append(`<option value="${i}">${i}</option>`);
+                            for (let i = 10; i >= 0; i--) {
+                                select.append(`<option value="${i}">${i}/10</option>`);
                             }
-                        } else if (index === 4) { // Red Flags - multi-select style
-                            const select = $('<select><option value="">All</option></select>')
+                        } else if (index === 6) { // Overall Complexity - dropdown
+                            const select = $('<select><option value="">All</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="LOW">LOW</option></select>')
                                 .appendTo(header.empty())
                                 .on('change', function() {
                                     const val = $(this).val();
                                     column.search(val, false, false).draw();
                                 });
-
-                            // Collect unique red flags
-                            const allFlags = new Set();
-                            data.forEach(row => {
-                                parseRedFlags(row.red_flags).forEach(flag => allFlags.add(flag));
-                            });
-
-                            Array.from(allFlags).sort().forEach(flag => {
-                                select.append(`<option value="${flag}">${flag.replace(/_/g, ' ')}</option>`);
-                            });
-                        } else if (index !== 2 && index !== 3) { // Text search for other columns (not URL or content)
+                        } else if (index === 7 || index === 8) { // Has Issues or Tech Review - boolean
+                            const select = $('<select><option value="">All</option><option value="true">Yes</option><option value="false">No</option></select>')
+                                .appendTo(header.empty())
+                                .on('change', function() {
+                                    const val = $(this).val();
+                                    column.search(val, false, false).draw();
+                                });
+                        } else if (index !== 2 && index !== 9 && index !== 10) { // Text search (not URL, Summary, or Details)
                             $('<input type="text" placeholder="Search..." />')
                                 .appendTo(header.empty())
                                 .on('keyup change', function() {
@@ -356,12 +703,24 @@
                                     }
                                 });
                         } else {
-                            header.empty(); // Clear URL and content filter headers
+                            header.empty();
                         }
                     });
                 }
             });
         }
+
+        // Modal close handlers
+        document.querySelector('.modal-close').addEventListener('click', function() {
+            document.getElementById('flagsModal').style.display = 'none';
+        });
+
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('flagsModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
 
         // Handle file upload
         document.getElementById('csv-file').addEventListener('change', function(e) {
