@@ -527,7 +527,7 @@
                     url: row.url || '',
                     numFlags: numFlags,
                     categories: categories,
-                    categoriesStr: categories.join(','), // For filtering
+                    categoriesStr: categories.length > 0 ? categories.join('|') : '', // For filtering with pipe delimiter
                     maxSeverity: maxSeverity,
                     overallComplexity: row.overall_complexity || 'N/A',
                     hasIssues: row.has_implementation_issues || false,
@@ -639,14 +639,21 @@
                 pageLength: 25,
                 order: [[5, 'desc']], // Sort by max severity descending
                 initComplete: function() {
-                    // Collect all unique categories from table data
-                    const allCategories = new Set();
-                    tableData.forEach(row => {
-                        if (row.categories && row.categories.length > 0) {
-                            row.categories.forEach(cat => allCategories.add(cat));
-                        }
-                    });
-                    const sortedCategories = Array.from(allCategories).sort();
+                    // All 12 red flag categories from the Pahlka framework
+                    const allCategories = [
+                        'complexity_policy_debt',
+                        'options_become_requirements',
+                        'policy_implementation_separation',
+                        'overwrought_legalese',
+                        'cascade_of_rigidity',
+                        'mandated_steps_not_outcomes',
+                        'administrative_burdens',
+                        'no_feedback_loops',
+                        'process_worship_oversight',
+                        'zero_risk_language',
+                        'frozen_technology',
+                        'implementation_opportunity'
+                    ];
 
                     // Add column filters
                     this.api().columns().every(function(index) {
@@ -654,19 +661,19 @@
                         const header = $(column.header()).closest('thead').find('tr.filters th').eq(index);
 
                         if (index === 4) { // Categories - dropdown
-                            const select = $('<select><option value="">All</option></select>')
+                            const select = $('<select><option value="">All Categories</option></select>')
                                 .appendTo(header.empty())
                                 .on('change', function() {
                                     const val = $(this).val();
                                     if (val) {
-                                        // Search for the category in the concatenated categories string
-                                        column.search(val, false, false).draw();
+                                        // Create a regex to match the category (word boundary to avoid partial matches)
+                                        column.search(val, true, false).draw();
                                     } else {
                                         column.search('').draw();
                                     }
                                 });
 
-                            sortedCategories.forEach(cat => {
+                            allCategories.forEach(cat => {
                                 select.append(`<option value="${cat}">${cat.replace(/_/g, ' ').toLowerCase()}</option>`);
                             });
                         } else if (index === 5) { // Max Severity - dropdown
