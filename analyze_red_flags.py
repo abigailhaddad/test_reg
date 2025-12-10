@@ -18,6 +18,7 @@ from openai import AsyncOpenAI
 from dotenv import load_dotenv
 import asyncio
 from datetime import datetime
+import psycopg
 
 # Load environment variables
 load_dotenv()
@@ -262,21 +263,39 @@ async def analyze_regulation(regulation_data: RegulationData, client: AsyncOpenA
             has_reporting_requirement=False
         )
 
-def load_regulation_files(directory: str, limit: int = 100) -> List[RegulationData]:
-    """Load regulation JSON files from directory"""
-    
-    regulation_files = list(Path(directory).glob("*.json"))[:limit]
+def load_regulation_files(directory: str, limit: int = 100, filter_keyword: str = None) -> List[RegulationData]:
+    """Load regulation JSON files from directory
+
+    Args:
+        directory: Path to directory containing regulation JSON files
+        limit: Maximum number of files to load
+        filter_keyword: Optional keyword to filter regulations (e.g., 'housing', 'tenant')
+    """
+
+    regulation_files = list(Path(directory).glob("*.json"))
     regulations = []
-    
+
     for file_path in regulation_files:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
+
+                # Apply keyword filter if specified
+                if filter_keyword:
+                    title = data.get('title', '').lower()
+                    content = data.get('content', '').lower()
+                    if filter_keyword.lower() not in title and filter_keyword.lower() not in content:
+                        continue
+
                 regulations.append(RegulationData(**data))
+
+                if limit and len(regulations) >= limit:
+                    break
+
         except Exception as e:
             print(f"Error loading {file_path}: {e}")
             continue
-    
+
     return regulations
 
 async def analyze_regulations_batch(regulations: List[RegulationData], client: AsyncOpenAI, output_file: str, batch_size: int = 10) -> pd.DataFrame:
@@ -341,15 +360,23 @@ async def analyze_regulations_batch(regulations: List[RegulationData], client: A
 
     return pd.DataFrame(results)
 
-async def main():
-    """Main execution function"""
+async def main(filter_keyword: str = None):
+    """Main execution function
+
+    Args:
+        filter_keyword: Optional keyword to filter regulations (e.g., 'housing')
+    """
 
     # Initialize async OpenAI client
     client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     # Load regulations
-    print("Loading regulation files...")
-    regulations = load_regulation_files("individual_regulations", limit=100)
+    if filter_keyword:
+        print(f"Loading regulation files (filtering for '{filter_keyword}')...")
+    else:
+        print("Loading regulation files...")
+
+    regulations = load_regulation_files("individual_regulations", limit=100, filter_keyword=filter_keyword)
     print(f"Loaded {len(regulations)} regulation files")
 
     if not regulations:
@@ -375,4 +402,10 @@ async def main():
     print(f"Results saved to: {output_file}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import sys
+
+    filter_keyword = None
+    if len(sys.argv) > 1:
+        filter_keyword = sys.argv[1]
+
+    asyncio.run(main(filter_keyword=filter_keyword))
