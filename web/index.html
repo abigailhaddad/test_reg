@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Flag Analysis - NY Regulations</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+        table {
+            font-size: 0.9rem;
+        }
+        th {
+            background-color: #007bff;
+            color: white !important;
+            font-weight: 600;
+        }
+        .red-flag {
+            display: inline-block;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85rem;
+        }
+        .severity-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .severity-medium {
+            color: #fd7e14;
+            font-weight: bold;
+        }
+        .severity-low {
+            color: #28a745;
+        }
+        .dataTables_filter {
+            margin-bottom: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 NY Regulations Red Flag Analysis</h1>
+        <p class="subtitle">Searchable database of regulatory compliance issues and technical review requirements</p>
+
+        <div id="loading" class="loading">Loading data...</div>
+        <table id="analysisTable" class="table table-striped table-hover" style="display:none;">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>URL</th>
+                    <th>Red Flags</th>
+                    <th>Summary</th>
+                    <th>Complexity</th>
+                    <th>Max Severity</th>
+                    <th>Tech Review</th>
+                    <th>Reporting</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+
+    <script>
+        Papa.parse('data.csv', {
+            header: true,
+            download: true,
+            complete: function(results) {
+                const data = results.data.filter(row => row.title); // Remove empty rows
+
+                $('#analysisTable tbody').html(
+                    data.map(row => `
+                        <tr>
+                            <td><strong>${escapeHtml(row.title)}</strong></td>
+                            <td><a href="${escapeHtml(row.url)}" target="_blank" rel="noopener">Link</a></td>
+                            <td><span class="red-flag">${row.num_flags || 0} flags</span></td>
+                            <td>${escapeHtml(row.summary || 'N/A').substring(0, 100)}...</td>
+                            <td>${row.overall_complexity || 'N/A'}</td>
+                            <td><span class="severity-${row.max_severity ? row.max_severity.toLowerCase() : 'low'}">${row.max_severity || 'N/A'}</span></td>
+                            <td>${row.requires_technical_review === 'True' ? '✓' : '–'}</td>
+                            <td>${row.has_reporting_requirement === 'True' ? '✓' : '–'}</td>
+                        </tr>
+                    `).join('')
+                );
+
+                $('#analysisTable').DataTable({
+                    pageLength: 25,
+                    order: [[5, 'desc']], // Sort by max severity by default
+                    columnDefs: [
+                        { width: '15%', targets: 0 },
+                        { width: '8%', targets: 1 },
+                        { width: '10%', targets: 2 },
+                        { width: '30%', targets: 3 },
+                        { width: '10%', targets: 4 },
+                        { width: '10%', targets: 5 },
+                        { width: '8%', targets: 6 },
+                        { width: '9%', targets: 7 }
+                    ]
+                });
+
+                $('#loading').hide();
+                $('#analysisTable').show();
+            },
+            error: function() {
+                $('#loading').html('<p style="color: #dc3545;">Error loading data. Please refresh the page.</p>');
+            }
+        });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
