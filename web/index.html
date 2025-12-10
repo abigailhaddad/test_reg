@@ -8,14 +8,16 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            padding: 20px;
+            padding: 10px;
             background-color: #f8f9fa;
         }
         .container {
             background-color: white;
             border-radius: 8px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 99%;
+            margin: 0 auto;
         }
         h1 {
             color: #333;
@@ -28,11 +30,28 @@
         }
         table {
             font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+        .dataTables_wrapper {
+            width: 100%;
+        }
+        .dataTables_filter {
+            display: none;
+        }
+        .dataTables_length, .dataTables_info, .dataTables_paginate {
+            font-size: 0.9rem;
         }
         th {
             background-color: #007bff;
             color: white !important;
             font-weight: 600;
+        }
+        tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        tbody tr:hover {
+            background-color: #e7f3ff !important;
         }
         .red-flag {
             display: inline-block;
@@ -61,6 +80,50 @@
             padding: 40px;
             color: #666;
         }
+        .help-icon {
+            cursor: help;
+            color: #0066cc;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+        .modal-content {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .regulation-text {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #0066cc;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .analysis-summary {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+        }
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 15px;
+            margin: 10px 0;
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .detail-value {
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -73,59 +136,148 @@
             <thead>
                 <tr>
                     <th>Title</th>
-                    <th>URL</th>
-                    <th>Red Flags</th>
-                    <th>Summary</th>
+                    <th># Flags</th>
+                    <th>Categories</th>
+                    <th>Explanations</th>
+                    <th>Impl Issues</th>
                     <th>Complexity</th>
-                    <th>Max Severity</th>
+                    <th>Severity</th>
                     <th>Tech Review</th>
                     <th>Reporting</th>
+                    <th>Summary</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
     </div>
 
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="detail-row">
+                        <div class="detail-label">Source:</div>
+                        <div class="detail-value"><a id="sourceLink" href="#" target="_blank">View Original</a></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Red Flag Count:</div>
+                        <div class="detail-value" id="flagsDetail"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Red Flags Details:</div>
+                        <div class="detail-value" id="redFlagsTextDetail"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Implementation Issues:</div>
+                        <div class="detail-value" id="implementationDetail"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Severity:</div>
+                        <div class="detail-value" id="severityDetail"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Complexity:</div>
+                        <div class="detail-value" id="complexityDetail"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Tech Review:</div>
+                        <div class="detail-value" id="techReviewDetail"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Reporting Req:</div>
+                        <div class="detail-value" id="reportingDetail"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Summary:</div>
+                        <div class="detail-value" id="summaryDetail"></div>
+                    </div>
+
+                    <h6 style="margin-top: 25px; margin-bottom: 10px;">Regulation Text</h6>
+                    <div class="regulation-text" id="contentDetail"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap4.min.js"></script>
 
     <script>
+        let allData = [];
+
+        function parseRedFlags(redFlagsStr) {
+            try {
+                if (!redFlagsStr || redFlagsStr === 'N/A') return [];
+                return JSON.parse(redFlagsStr);
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function getCategories(flags) {
+            return flags.map(f => f.category || '').filter(c => c).join(', ');
+        }
+
+        function getExplanations(flags) {
+            return flags.map(f => f.explanation || '').filter(e => e).join(' | ');
+        }
+
         Papa.parse('data.csv', {
             header: true,
             download: true,
             complete: function(results) {
-                const data = results.data.filter(row => row.title); // Remove empty rows
+                allData = results.data.filter(row => row.title); // Remove empty rows
 
                 $('#analysisTable tbody').html(
-                    data.map(row => `
-                        <tr>
+                    allData.map((row, idx) => {
+                        const flags = parseRedFlags(row.red_flags);
+                        const categories = getCategories(flags);
+                        const explanations = getExplanations(flags);
+                        return `
+                        <tr data-index="${idx}">
                             <td><strong>${escapeHtml(row.title)}</strong></td>
-                            <td><a href="${escapeHtml(row.url)}" target="_blank" rel="noopener">Link</a></td>
-                            <td><span class="red-flag">${row.num_flags || 0} flags</span></td>
-                            <td>${escapeHtml(row.summary || 'N/A').substring(0, 100)}...</td>
-                            <td>${row.overall_complexity || 'N/A'}</td>
-                            <td><span class="severity-${row.max_severity ? row.max_severity.toLowerCase() : 'low'}">${row.max_severity || 'N/A'}</span></td>
+                            <td><span class="red-flag">${row.num_flags || 0}</span></td>
+                            <td>${escapeHtml(categories) || '–'}</td>
+                            <td>${escapeHtml(explanations).substring(0, 150)}${explanations.length > 150 ? '...' : ''}</td>
+                            <td>${row.has_implementation_issues === 'True' ? '✓' : '–'}</td>
+                            <td>${row.overall_complexity || '–'}</td>
+                            <td><span class="severity-${row.max_severity ? row.max_severity.toLowerCase() : 'low'}">${row.max_severity || '–'}</span></td>
                             <td>${row.requires_technical_review === 'True' ? '✓' : '–'}</td>
                             <td>${row.has_reporting_requirement === 'True' ? '✓' : '–'}</td>
+                            <td>${escapeHtml(row.summary || '').substring(0, 100)}${(row.summary || '').length > 100 ? '...' : ''}</td>
                         </tr>
-                    `).join('')
+                    `}).join('')
                 );
 
                 $('#analysisTable').DataTable({
                     pageLength: 25,
-                    order: [[5, 'desc']], // Sort by max severity by default
+                    order: [[6, 'desc']], // Sort by severity by default
                     columnDefs: [
-                        { width: '15%', targets: 0 },
-                        { width: '8%', targets: 1 },
-                        { width: '10%', targets: 2 },
-                        { width: '30%', targets: 3 },
-                        { width: '10%', targets: 4 },
-                        { width: '10%', targets: 5 },
-                        { width: '8%', targets: 6 },
-                        { width: '9%', targets: 7 }
+                        { width: '20%', targets: 0 },
+                        { width: '5%', targets: 1 },
+                        { width: '15%', targets: 2 },
+                        { width: '20%', targets: 3 },
+                        { width: '5%', targets: 4 },
+                        { width: '7%', targets: 5 },
+                        { width: '5%', targets: 6 },
+                        { width: '5%', targets: 7 },
+                        { width: '5%', targets: 8 },
+                        { width: '13%', targets: 9 }
                     ]
+                });
+
+                // Add row click handler
+                $('#analysisTable tbody').on('click', 'tr', function() {
+                    const idx = $(this).data('index');
+                    showDetail(allData[idx]);
                 });
 
                 $('#loading').hide();
@@ -135,6 +287,22 @@
                 $('#loading').html('<p style="color: #dc3545;">Error loading data. Please refresh the page.</p>');
             }
         });
+
+        function showDetail(row) {
+            $('#modalTitle').text(row.title);
+            $('#sourceLink').attr('href', row.url);
+            $('#flagsDetail').html(`<span class="red-flag">${row.num_flags || 0} flags</span>`);
+            $('#redFlagsTextDetail').text(row.red_flags || 'No details');
+            $('#implementationDetail').text(row.has_implementation_issues === 'True' ? '✓ Yes' : '– No');
+            $('#severityDetail').html(`<span class="severity-${row.max_severity ? row.max_severity.toLowerCase() : 'low'}">${row.max_severity || 'N/A'}</span>`);
+            $('#complexityDetail').text(row.overall_complexity || 'N/A');
+            $('#techReviewDetail').text(row.requires_technical_review === 'True' ? '✓ Yes' : '– No');
+            $('#reportingDetail').text(row.has_reporting_requirement === 'True' ? '✓ Yes' : '– No');
+            $('#summaryDetail').text(row.summary || 'No summary available');
+            $('#contentDetail').text(row.content || 'No content available');
+
+            $('#detailModal').modal('show');
+        }
 
         function escapeHtml(text) {
             if (!text) return '';
